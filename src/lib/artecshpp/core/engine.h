@@ -7,6 +7,7 @@
 #include "componentmanager.h"
 
 namespace artecshpp {
+namespace core {
 
 
 class Engine
@@ -32,7 +33,7 @@ private:
 };
 
 
-}
+}}
 
 
 #endif // ENGINE_H

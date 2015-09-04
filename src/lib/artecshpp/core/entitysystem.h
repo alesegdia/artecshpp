@@ -1,8 +1,9 @@
 #ifndef ENTITYSYSTEM_H
 #define ENTITYSYSTEM_H
 
-namespace artecshpp
-{
+namespace artecshpp {
+namespace core {
+
 
 class EntitySystem
 {
@@ -12,6 +13,6 @@ public:
 
 };
 
-}
+}}
 
 #endif // ENTITYSYSTEM_H

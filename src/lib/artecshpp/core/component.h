@@ -3,6 +3,7 @@
 
 
 namespace artecshpp {
+namespace core {
 
 
 class Component
@@ -14,7 +15,7 @@ public:
 };
 
 
-}
+}}
 
 
 #endif // COMPONENT_H

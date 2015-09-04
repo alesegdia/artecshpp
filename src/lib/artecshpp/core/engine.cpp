@@ -3,6 +3,7 @@
 #include "componenttraits.h"
 
 namespace artecshpp {
+namespace core {
 
 
 Engine::Engine()
@@ -32,5 +33,5 @@ void Engine::removeComponent(int entity)
 }
 
 
-}
+}}
 

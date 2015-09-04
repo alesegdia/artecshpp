@@ -7,6 +7,7 @@
 
 
 namespace artecshpp {
+namespace core {
 
 
 /**
@@ -60,6 +61,6 @@ private:
  *     i.e.: if addComponent entity is 512 and current max is 256, increase until 512.
  */
 
-}
+}}
 
 #endif // COMPONENTMANAGER_H

@@ -4,6 +4,7 @@
 
 
 namespace artecshpp {
+namespace core {
 
 
 ComponentManager::ComponentManager()
@@ -40,4 +41,4 @@ void ComponentManager::removeComponent(int entity)
 }
 
 
-}
+}}
