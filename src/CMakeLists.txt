@@ -1,11 +1,15 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 # SET SOURCES AND STUFF
-file(GLOB_RECURSE SRC lib/*)
+file(GLOB_RECURSE LIB_SRC lib/*)
+file(GLOB_RECURSE TEST_SRC test/*)
 
-add_library(artecshpp ${SRC})
+add_executable(artecshpp-test ${TEST_SRC})
+add_library(artecshppcore ${LIB_SRC})
 
-include_directories(artecshpp lib)
+include_directories(artecshppcore lib)
+include_directories(artecshpp-test lib)
 
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/lib)
 
