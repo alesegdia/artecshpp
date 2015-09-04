@@ -10,11 +10,10 @@ namespace core {
 class IEntityListener
 {
 public:
-	IEntityListener();
-	~IEntityListener();
+    virtual ~IEntityListener() = 0 ;
 
-	void entityAdded( Entity e );
-	void entityRemoved( Entity e );
+	virtual void entityAdded( Entity e ) = 0 ;
+	virtual void entityRemoved( Entity e ) = 0 ;
 
 };
 

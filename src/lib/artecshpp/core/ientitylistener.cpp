@@ -4,10 +4,6 @@ namespace artecshpp {
 namespace core {
 
 
-IEntityListener::IEntityListener()
-{
-}
-
 IEntityListener::~IEntityListener()
 {
 }
