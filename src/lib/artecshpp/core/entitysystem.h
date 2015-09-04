@@ -18,6 +18,9 @@ public:
     void entityAdded(Entity e) override;
     void entityRemoved(Entity e) override;
 
+private:
+    bool m_activeEntities;
+
 };
 
 
