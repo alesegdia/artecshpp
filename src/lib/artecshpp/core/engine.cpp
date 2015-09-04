@@ -19,14 +19,14 @@ Engine::~Engine()
 
 
 template <typename ComponentType>
-ComponentType* Engine::addComponent(int entity, ComponentType* component)
+ComponentType* Engine::addComponent( Entity entity, ComponentType* component)
 {
 	this->m_bitsets[entity].set(ComponentTraits::getIndex<ComponentType>());
 	return this->m_componentManager->addComponent<ComponentType>(entity, component);
 }
 
 template <typename ComponentType>
-void Engine::removeComponent(int entity)
+void Engine::removeComponent( Entity entity )
 {
 	this->m_bitsets[entity].reset(ComponentTraits::getIndex<ComponentType>());
 	this->m_componentManager->removeComponent<ComponentType>(entity);

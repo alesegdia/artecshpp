@@ -21,21 +21,21 @@ ComponentManager::~ComponentManager()
 }
 
 template <typename ComponentType>
-ComponentType* ComponentManager::addComponent(int entity, ComponentType* component)
+ComponentType* ComponentManager::addComponent( Entity entity, ComponentType* component )
 {
 	return this->m_components[entity][ComponentTraits::getIndex<ComponentType>()] = component;
 }
 
 
 template <typename ComponentType>
-ComponentType* ComponentManager::getComponent( int entity )
+ComponentType* ComponentManager::getComponent( Entity entity )
 {
 	return this->m_components[entity][ComponentTraits::getIndex<ComponentType>()];
 }
 
 
 template <typename ComponentType>
-void ComponentManager::removeComponent(int entity)
+void ComponentManager::removeComponent( Entity entity )
 {
 	this->m_components[entity][ComponentTraits::getIndex<ComponentType>()];
 }

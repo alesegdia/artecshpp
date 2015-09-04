@@ -5,6 +5,7 @@
 #include <bitset>
 
 #include "componentmanager.h"
+#include "entity.h"
 
 namespace artecshpp {
 namespace core {
@@ -20,10 +21,10 @@ public:
 	~Engine();
 
 	template <typename ComponentType>
-	ComponentType* addComponent(int entity, ComponentType* component);
+    ComponentType* addComponent( Entity entity, ComponentType* component );
 	
 	template <typename ComponentType>
-	void removeComponent( int entity );
+    void removeComponent( Entity entity );
 
 
 private:

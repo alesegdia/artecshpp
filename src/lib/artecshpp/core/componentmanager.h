@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "component.h"
+#include "entity.h"
 
 
 namespace artecshpp {
@@ -31,17 +32,23 @@ public:
 	 * @return the same component for utility 
 	 */
 	template <typename ComponentType>
-	ComponentType* addComponent( int entity, ComponentType* component );
+    ComponentType* addComponent( Entity entity, ComponentType* component );
 
-	template <typename ComponentType>
-	ComponentType* getComponent( int entity );
+    /**
+     * @brief getComponent returns the component of ComponentClass
+     * associated to the entity requested
+     * @param entity
+     * @return
+     */
+    template <typename ComponentType>
+    ComponentType* getComponent( Entity entity );
 
 	/**
 	 * @brief removes a component from an entity
 	 * @param entity to remove the component from
 	 */
 	template <typename ComponentType>
-	void removeComponent( int entity );
+    void removeComponent( Entity entity );
 
 
 private:
