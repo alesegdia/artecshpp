@@ -2,6 +2,7 @@
 #define __CONFIG_H__
 
 #include <cstdlib>
+#include <bitset>
 
 namespace artecshpp {
 namespace core {
@@ -12,6 +13,8 @@ public:
 	static const size_t MAX_COMPONENTS = 64;
 
 };
+
+typedef std::bitset<Config::MAX_COMPONENTS> ComponentBits;
 
 }
 }
