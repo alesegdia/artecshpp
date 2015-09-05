@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include <cmath>
+#include <bitset>
+#include "config.h"
 
 
 namespace artecshpp {
@@ -34,6 +36,30 @@ public:
 
 private:
 	static ctflags_t nextTypeIndex;
+};
+
+
+template <typename... Rest>
+struct ComponentBitsBuilder;
+
+template <typename First, typename... Rest>
+struct ComponentBitsBuilder<First, Rest...>
+{
+	static ComponentBits buildBits()
+	{
+		ComponentBits b;
+		b.set(ComponentTraits::getIndex<First>());
+		return b | ComponentBitsBuilder<Rest...>::buildBits();
+	}
+};
+
+template <>
+struct ComponentBitsBuilder<>
+{
+	static ComponentBits buildBits()
+	{
+		return ComponentBits();
+	}
 };
 
 
