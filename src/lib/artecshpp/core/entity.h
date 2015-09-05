@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <stack>
-#include <bitset>
 
 #include "component.h"
 #include "config.h"
@@ -20,6 +19,8 @@ public:
 	Entity ();
 	virtual ~Entity ();
 
+	void setID( eid_t eid );
+
 	template <typename ComponentType>
     ComponentType* addComponent( ComponentType* component );
 
@@ -30,8 +31,9 @@ public:
     ComponentType* getComponent();
 
 private:
-	std::bitset<Config::MAX_COMPONENTS> m_bitset;
+	ComponentBits m_bits;
 	Component* m_components[Config::MAX_COMPONENTS];
+	eid_t m_eid;
 
 };
 
