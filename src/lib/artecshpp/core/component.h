@@ -9,7 +9,6 @@ namespace core {
 class Component
 {
 public:
-    Component();
 	virtual ~Component();
 
 };

@@ -4,7 +4,7 @@
 #include <memory>
 #include <bitset>
 
-#include "componentmanager.h"
+#include "config.h"
 #include "entity.h"
 
 namespace artecshpp {
@@ -14,23 +14,27 @@ namespace core {
 class Engine
 {
 public:
-	static const int MAX_ENTITIES = 1024;
-	static const int MAX_COMPONENTS = 64;
-
 	Engine();
 	~Engine();
 
-	template <typename ComponentType>
-    ComponentType* addComponent( Entity entity, ComponentType* component );
-	
-	template <typename ComponentType>
-    void removeComponent( Entity entity );
+	Entity* addEntity( Entity* e );
 
 
 private:
-	std::bitset<MAX_COMPONENTS>* m_bitsets;
-	std::shared_ptr<ComponentManager> m_componentManager;
-	
+
+	class EIDPool {
+	public:
+		EIDPool();
+		void checkIn(eid_t id);
+		eid_t checkOut();
+	private:
+		std::stack<eid_t> m_eidStack;
+	};
+
+	EIDPool m_eidPool;
+	Entity m_entities[Config::MAX_ENTITIES];
+
+
 };
 
 

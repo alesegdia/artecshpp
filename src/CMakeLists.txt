@@ -10,6 +10,8 @@ add_library(artecshppcore ${LIB_SRC})
 include_directories(artecshppcore lib)
 include_directories(artecshpp-test lib)
 
+include_directories(artecshppcore ../modules/rztl/include)
+
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/lib)
 

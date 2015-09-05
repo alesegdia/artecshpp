@@ -7,29 +7,41 @@ namespace core {
 
 
 Engine::Engine()
-	: m_bitsets(new std::bitset<MAX_COMPONENTS>[MAX_ENTITIES]),
-	  m_componentManager(new ComponentManager())
 {
+
 }
 
 Engine::~Engine()
 {
-	delete [] m_bitsets;
+
 }
 
 
-template <typename ComponentType>
-ComponentType* Engine::addComponent( Entity entity, ComponentType* component)
+Entity* Engine::addEntity( Entity* e )
 {
-	this->m_bitsets[entity].set(ComponentTraits::getIndex<ComponentType>());
-	return this->m_componentManager->addComponent<ComponentType>(entity, component);
+	return e;
 }
 
-template <typename ComponentType>
-void Engine::removeComponent( Entity entity )
+
+/**** EIDPool definition ****/
+Engine::EIDPool::EIDPool()
 {
-	this->m_bitsets[entity].reset(ComponentTraits::getIndex<ComponentType>());
-	this->m_componentManager->removeComponent<ComponentType>(entity);
+	for( eid_t i = 0; i < Config::MAX_ENTITIES; i++ )
+	{
+		checkIn(i);
+	}
+}
+
+void Engine::EIDPool::checkIn( eid_t id )
+{
+	m_eidStack.push( id );
+}
+
+eid_t Engine::EIDPool::checkOut()
+{
+	eid_t ret = m_eidStack.top();
+	m_eidStack.pop();
+	return ret;
 }
 
 

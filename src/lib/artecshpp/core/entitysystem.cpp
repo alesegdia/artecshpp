@@ -6,23 +6,27 @@ namespace artecshpp {
 namespace core {
 
 
-EntitySystem::EntitySystem()
-{
-    m_activeEntities = new bool[Engine::MAX_ENTITIES];
-}
-
 EntitySystem::~EntitySystem()
 {
 }
 
 
-void EntitySystem::entityAdded(Entity e)
+void EntitySystem::entityAdded(const Entity& e)
+{
+	if( checkEntity(e) )
+	{
+		m_entities.Add(e);
+	}
+}
+
+void EntitySystem::entityRemoved(const Entity& e)
 {
 
 }
 
-void EntitySystem::entityRemoved(Entity e)
+bool EntitySystem::checkEntity( const Entity& e )
 {
+
 }
 
 

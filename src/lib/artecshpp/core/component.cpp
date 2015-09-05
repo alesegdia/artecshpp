@@ -5,10 +5,6 @@ namespace artecshpp {
 namespace core {
 
 
-Component::Component()
-{
-}
-
 Component::~Component()
 {
 }

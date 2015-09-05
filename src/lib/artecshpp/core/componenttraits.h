@@ -8,7 +8,7 @@
 namespace artecshpp {
 namespace core {
 
-	
+
 typedef std::uint32_t ctflags_t;
 typedef std::uint32_t ctindex_t;
 

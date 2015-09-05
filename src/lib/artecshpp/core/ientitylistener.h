@@ -12,8 +12,8 @@ class IEntityListener
 public:
     virtual ~IEntityListener() = 0 ;
 
-	virtual void entityAdded( Entity e ) = 0 ;
-	virtual void entityRemoved( Entity e ) = 0 ;
+	virtual void entityAdded( const Entity& e ) = 0 ;
+	virtual void entityRemoved( const Entity& e ) = 0 ;
 
 };
 

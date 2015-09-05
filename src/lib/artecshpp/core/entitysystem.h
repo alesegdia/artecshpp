@@ -1,7 +1,10 @@
 #ifndef ENTITYSYSTEM_H
 #define ENTITYSYSTEM_H
 
+#include <rztl/unordereddynamicarray.h>
+
 #include "ientitylistener.h"
+#include "entity.h"
 
 
 namespace artecshpp {
@@ -11,15 +14,16 @@ namespace core {
 class EntitySystem : public IEntityListener
 {
 public:
-	EntitySystem();
-	~EntitySystem();
+	virtual ~EntitySystem() = 0;
 
     // IEntityListener interface
-    void entityAdded(Entity e) override;
-    void entityRemoved(Entity e) override;
+    void entityAdded(const Entity& e) override;
+    void entityRemoved(const Entity& e) override;
+
+    bool checkEntity( const Entity& e );
 
 private:
-    bool m_activeEntities;
+	rztl::UnorderedDynamicArray<Entity> m_entities;
 
 };
 
