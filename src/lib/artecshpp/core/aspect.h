@@ -14,9 +14,13 @@ public:
 	virtual ~Aspect ();
 
 	template<typename... Args>
-	void all();
+	void all()
+	{
+		m_all |= ComponentBitsBuilder<Args...>::buildBits();
+	}
 
 	const ComponentBits& all();
+
 
 private:
 	ComponentBits m_all;
