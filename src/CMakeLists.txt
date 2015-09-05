@@ -12,6 +12,8 @@ include_directories(artecshpp-test lib)
 
 include_directories(artecshppcore ../modules/rztl/include)
 
+target_link_libraries(artecshpp-test artecshppcore)
+
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/lib)
 
