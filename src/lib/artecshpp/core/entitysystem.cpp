@@ -11,22 +11,22 @@ EntitySystem::~EntitySystem()
 }
 
 
-void EntitySystem::entityAdded(const Entity& e)
+void EntitySystem::entityAdded( Entity* e )
 {
 	if( checkEntity(e) )
 	{
-		m_entities.Add(e);
+		m_entities.add(e);
 	}
 }
 
-void EntitySystem::entityRemoved(const Entity& e)
+void EntitySystem::entityRemoved( Entity* e )
 {
 
 }
 
-bool EntitySystem::checkEntity( const Entity& e )
+bool EntitySystem::checkEntity( Entity* e )
 {
-
+	return true;
 }
 
 

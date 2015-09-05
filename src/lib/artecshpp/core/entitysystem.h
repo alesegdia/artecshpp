@@ -5,6 +5,7 @@
 
 #include "ientitylistener.h"
 #include "entity.h"
+#include "aspect.h"
 
 
 namespace artecshpp {
@@ -17,13 +18,16 @@ public:
 	virtual ~EntitySystem() = 0;
 
     // IEntityListener interface
-    void entityAdded(const Entity& e) override;
-    void entityRemoved(const Entity& e) override;
+    void entityAdded( Entity* e ) override;
+    void entityRemoved( Entity* e ) override;
 
-    bool checkEntity( const Entity& e );
+    bool checkEntity( Entity* e );
+
+protected:
+	Aspect aspect;
 
 private:
-	rztl::UnorderedDynamicArray<Entity> m_entities;
+	rztl::UnorderedDynamicArray<Entity*> m_entities;
 
 };
 
