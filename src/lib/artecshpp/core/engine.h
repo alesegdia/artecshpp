@@ -6,6 +6,8 @@
 
 #include "config.h"
 #include "entity.h"
+#include <rztl/unordereddynamicarray.h>
+
 
 namespace artecshpp {
 namespace core {
@@ -32,7 +34,7 @@ private:
 	};
 
 	EIDPool m_eidPool;
-	Entity m_entities[Config::MAX_ENTITIES];
+	rztl::UnorderedDynamicArray<Entity*> m_actives;
 
 
 };

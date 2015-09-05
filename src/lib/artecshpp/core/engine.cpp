@@ -19,6 +19,9 @@ Engine::~Engine()
 
 Entity* Engine::addEntity( Entity* e )
 {
+	eid_t eid = m_eidPool.checkOut();
+	e->setID( eid );
+	m_actives.add(e);
 	return e;
 }
 
