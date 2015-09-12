@@ -13,10 +13,12 @@ EntitySystem::~EntitySystem()
 
 void EntitySystem::entityAdded( Entity* e )
 {
+	/*
 	if( checkEntity(e) )
 	{
 		m_entities.add(e);
 	}
+	*/
 }
 
 void EntitySystem::entityRemoved( Entity* e )

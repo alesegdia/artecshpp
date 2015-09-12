@@ -27,7 +27,7 @@ protected:
 	Aspect aspect;
 
 private:
-	rztl::UnorderedDynamicArray<Entity*> m_entities;
+	//rztl::UnorderedDynamicArray<Entity*> m_entities;
 
 };
 
