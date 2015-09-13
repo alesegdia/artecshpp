@@ -6,14 +6,6 @@ namespace artecshpp {
 namespace core {
 
 
-class Component
-{
-public:
-	virtual ~Component();
-
-};
-
-
 }}
 
 

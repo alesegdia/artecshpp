@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <string>
 
 #include "artecshpp/core/aspect.h"
 #include "artecshpp/core/component.h"
@@ -28,5 +28,14 @@ int main( int argc, char** argv )
 	std::cout << a2.all() << std::endl;
 	std::cout << a3.all() << std::endl;
 	std::cout << a4.all() << std::endl;
+
+	artecshpp::core::EntityManager em;
+	artecshpp::core::Entity e = em.createEntity();
+
+	int& i = em.create<int>(e);
+	std::string& s = em.create<std::string>(e);
+
+	em.remove( e, &i );
+
 	return 0;
 }

@@ -12,7 +12,7 @@
 namespace artecshpp {
 namespace core {
 
-
+/*
 class Engine
 {
 public:
@@ -35,10 +35,11 @@ private:
 
 	EIDPool m_eidPool;
 	rztl::UnorderedDynamicArray<Entity*> m_actives;
+	//rztl::UnorderedDynamicArray<EntitySystem*> m_systems;
 
 
 };
-
+*/
 
 }}
 

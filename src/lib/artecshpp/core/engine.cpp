@@ -5,7 +5,7 @@
 namespace artecshpp {
 namespace core {
 
-
+/*
 Engine::Engine()
 {
 
@@ -26,7 +26,7 @@ Entity* Engine::addEntity( Entity* e )
 }
 
 
-/**** EIDPool definition ****/
+**** EIDPool definition ****
 Engine::EIDPool::EIDPool()
 {
 	for( eid_t i = 0; i < Config::MAX_ENTITIES; i++ )
@@ -46,7 +46,7 @@ eid_t Engine::EIDPool::checkOut()
 	m_eidStack.pop();
 	return ret;
 }
-
+*/
 
 }}
 
