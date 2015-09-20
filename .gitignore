@@ -5,3 +5,4 @@ project
 bin
 *.pro.user
 *.pyc
+*kdev4*
