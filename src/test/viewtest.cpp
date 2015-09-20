@@ -9,6 +9,7 @@ typedef artecshpp::core::Entity Entity;
 struct ComponentBits {};
 struct Aspect {};
 
+/**** Components Memory Management ********************/
 template <typename T>
 struct DefaultMemoryManager {
 
@@ -34,6 +35,7 @@ struct DefaultMemoryManager {
 template <typename T>
 std::vector<T> DefaultMemoryManager<T>::s_data(10);
 
+/**** EntityManager ***************************************/
 struct EntityManager {
 
 	std::vector<Entity>& alive() {
@@ -49,11 +51,32 @@ struct EntityManager {
 	T& getComponent(Entity e) {
 		return *DefaultMemoryManager<T>::get(e);
 	}
+	void addEntity(Entity e) {
+		m_alive.push_back(e);
+	}
+	
+	template <typename T>
+	void tryAddListener( typename std::enable_if<std::is_base_of<artecshpp::core::IEntityObserver, T>::value, T>::type& t)
+	{
+		addListener(&t);		
+	}
 
-	std::vector<Entity> m_alive;
+	template <typename T>
+	void tryAddListener( typename std::enable_if<!std::is_base_of<artecshpp::core::IEntityObserver, T>::value, T>::type& t)
+	{
+		std::cout << "foo\n";
+	}
+
+	void addListener(artecshpp::core::IEntityObserver* obs) {
+		this->m_observers.push_back(obs);
+	}
+
+	std::vector<artecshpp::core::IEntityObserver*> m_observers;
+	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
 
 };
 
+/**** Iterator Factories ******************************************/
 struct ForwardIteratorFactory {
 	static inline std::vector<Entity>::iterator begin( std::vector<Entity>& entities ) {
 		return entities.begin();
@@ -64,19 +87,21 @@ struct ForwardIteratorFactory {
 };
 
 
-/**** EntityFilter ************************************************/
-struct AliveFilter { //: public artecshpp::core::IEntityObserver {
+/**** EntityFilters ************************************************/
+
+// pass to EntityFilters a template parameter indicating the bit checker
+
+struct AliveFilter {
 	AliveFilter(EntityManager& eMgr)
 		: m_eMgr(eMgr) {}
 	EntityManager m_eMgr;
-
+	
 	std::vector<Entity>& entities() {
 		return m_eMgr.alive();
 	}
 };
 
-//template <typename... Components>
-struct StorageFilter {
+struct StorageFilter : public artecshpp::core::IEntityObserver {
 	StorageFilter(EntityManager& eMgr)
 		: m_eMgr(eMgr) {}
 	EntityManager m_eMgr;
@@ -84,9 +109,18 @@ struct StorageFilter {
 	std::vector<Entity>& entities() {
 		return m_entities;
 	}
+	
+	void entityAdded(Entity* e) override {
+		m_entities.push_back(*e);
+	}
+	
+	void entityRemoved(Entity* e) override {
+		
+	}
+	
+	
 	std::vector<Entity> m_entities;
 };
-/*******************************************************************/
 
 /**** AspectChecker ************************************************/
 struct BitChecker {
@@ -107,16 +141,15 @@ struct AlwaysTrueChecker {
 		return true;
 	}
 };
-/*******************************************************************/
 
-
+/**** Entity Views **************************************************/
+// probably pass also EntityFilter <BitChecker>
 template <class EntityFilter, class IteratorFactory>
 struct View {
 	View( EntityManager& emgr )
 		: m_eMgr(emgr), m_filter(emgr) {
-		if( std::is_same<EntityFilter, artecshpp::core::IEntityObserver>::value ) {
-			//emgr.addListener(m_filter);
-		}
+		// moverlo al entitymanager y dejar alli el override? seria lo suyo
+		m_eMgr.tryAddListener<EntityFilter>(m_filter);
 	}
 	
 	// if is_same StorageFilter, remove observer from emgr
@@ -125,7 +158,7 @@ struct View {
 	IteratorFactory m_itFactory;
 
 	template <typename... Args>
-	void each(std::function<void(Args&...)> f) {
+	void each(std::function<void(Entity&,Args&...)> f) {
 		// ver forma para separar la creación del iterador
 		// con la selección de las entidades
 		//IteratorType it( = m_filter.begin( );
@@ -133,6 +166,7 @@ struct View {
 		auto it = m_itFactory.begin( m_filter.entities() );
 		while( it != m_itFactory.end( m_filter.entities() ) ) {
 			f( *it, (m_eMgr.template getComponent<Args>(*it)) ... );
+			it++;
 		}
 	}
 
@@ -141,8 +175,6 @@ struct View {
 		f( e, (m_eMgr.template getComponent<Args>(e)) ... );
 	}
 
-
-	
 	EntityManager m_eMgr;
 };
 
@@ -150,6 +182,7 @@ struct View {
 class BaseSystem {
 public:
 	virtual ~BaseSystem() = 0;
+	virtual void process() = 0;
 	virtual void process(Entity e) = 0;
 };
 
@@ -172,7 +205,12 @@ public:
 		
 	}
 
-	void process(Entity e) {
+	
+	void process() override {
+		m_view.template each<Args...>(static_cast<Derived*>(this)->function);
+	}
+	
+	void process(Entity e) override {
 		m_view.template each<Args...>(e, static_cast<Derived*>(this)->function);
 	}
 	
@@ -183,12 +221,12 @@ private:
 };
 
 class SampleSystem : public System<
-	SampleSystem,
-	View<StorageFilter, ForwardIteratorFactory>,
-	int, double, std::string> {
+	SampleSystem, 									// system type
+	View<AliveFilter, ForwardIteratorFactory>, 		// view type
+	int, double, std::string> { 					// needed components
 public:
 	SampleSystem(EntityManager& emgr)
-	: System<SampleSystem, View<StorageFilter, ForwardIteratorFactory>, int, double, std::string>::System(emgr) { }
+	: System<SampleSystem, View<AliveFilter, ForwardIteratorFactory>, int, double, std::string>::System(emgr) { }
 	std::function<void(Entity& e, int& i, double& d, std::string& str)> function =
 		[](Entity& e, int& i, double& d, std::string& s) {
 			std::cout 	<< i << std::endl
@@ -216,17 +254,39 @@ world::process() {
 */
 
 int main( int argc, char** argv ) {
+
 	EntityManager emgr;
+	
+	/****************************/
 	Entity e0(0);
-	Entity e1(1);
 	int& e1i = emgr.createComponent<int>(e0);
 	double& e1d = emgr.createComponent<double>(e0);
 	std::string& e1s = emgr.createComponent<std::string>(e0);
+	emgr.addEntity(e0);
+	
+	/****************************/
+	Entity e1(1);
+	int& e2i = emgr.createComponent<int>(e1);
+	double& e2d = emgr.createComponent<double>(e1);
+	std::string& e2s = emgr.createComponent<std::string>(e1);
+	emgr.addEntity(e1);
+	
+	/****************************/
 	SampleSystem ss(emgr);
 	ss.process(e0);
+	
 	e1i = 3;
 	e1d = 0.5;
 	e1s = "olaqase";
+	
+	e2i = 123;
+	e2d = 0.999;
+	e2s = "fuckyeah this shit is working";
+	
 	ss.process(e0);
+	
+	std::cout << "===============================\n";
+	
+	ss.process();
 	return 0;
 }
