@@ -4,6 +4,7 @@
 
 #include <artecshpp/core/entity.h>
 #include <artecshpp/core/ientitylistener.h>
+#include <artecshpp/core/componenttraits.h>
 
 typedef artecshpp::core::Entity Entity;
 struct ComponentBits {};
@@ -77,10 +78,22 @@ struct EntityManager {
 };
 
 /**** Iterator Factories ******************************************/
+
+template <typename CheckerType>
+struct CheckerIteratorFactory {
+	CheckerType ct;
+};
+
 struct ForwardIteratorFactory {
+	
+	void setBits( const artecshpp::core::ComponentBits& bits ) {
+		
+	}
+	
 	static inline std::vector<Entity>::iterator begin( std::vector<Entity>& entities ) {
 		return entities.begin();
 	}
+	
 	static inline std::vector<Entity>::iterator end( std::vector<Entity>& entities ) {
 		return entities.end();
 	}
@@ -96,6 +109,10 @@ struct AliveFilter {
 		: m_eMgr(eMgr) {}
 	EntityManager m_eMgr;
 	
+	void setBits( const artecshpp::core::ComponentBits& bits ) {
+		
+	}
+	
 	std::vector<Entity>& entities() {
 		return m_eMgr.alive();
 	}
@@ -106,11 +123,16 @@ struct StorageFilter : public artecshpp::core::IEntityObserver {
 		: m_eMgr(eMgr) {}
 	EntityManager m_eMgr;
 	
+	void setBits( const artecshpp::core::ComponentBits& bits ) {
+		
+	}
+	
 	std::vector<Entity>& entities() {
 		return m_entities;
 	}
 	
 	void entityAdded(Entity* e) override {
+		// if component bits ok
 		m_entities.push_back(*e);
 	}
 	
@@ -124,20 +146,18 @@ struct StorageFilter : public artecshpp::core::IEntityObserver {
 
 /**** AspectChecker ************************************************/
 struct BitChecker {
-	BitChecker( const Aspect& a ) {
-		
-	}
 
-	inline bool check( const ComponentBits& bits ) {
+	inline bool check( const Entity& e ) {
 		return true;
 	}
+
+	Aspect m_aspect;
+	EntityManager m_eMgr;
 };
 
 struct AlwaysTrueChecker {
-	AlwaysTrueChecker( const Aspect& a ) {
-	}
 
-	inline bool check( const ComponentBits& bits ) {
+	inline bool check( const Entity& e ) {
 		return true;
 	}
 };
@@ -154,8 +174,14 @@ struct View {
 	
 	// if is_same StorageFilter, remove observer from emgr
 
+	void setBits( const artecshpp::core::ComponentBits& bits ) {
+		m_filter.setBits( bits );
+		m_itFactory.setBits( bits );
+	}
+	
 	EntityFilter m_filter;
 	IteratorFactory m_itFactory;
+	BitChecker m_checker;
 
 	template <typename... Args>
 	void each(std::function<void(Entity&,Args&...)> f) {
@@ -165,8 +191,10 @@ struct View {
 		// IteratorType es un iterador de entidades
 		auto it = m_itFactory.begin( m_filter.entities() );
 		while( it != m_itFactory.end( m_filter.entities() ) ) {
-			f( *it, (m_eMgr.template getComponent<Args>(*it)) ... );
-			it++;
+			if( m_checker.check(*it) ) {
+				f( *it, (m_eMgr.template getComponent<Args>(*it)) ... );
+				it++;
+			}
 		}
 	}
 
@@ -199,13 +227,16 @@ struct EntityView {};
 template <typename Derived, typename ViewType, typename... Args>
 class System : public BaseSystem {
 public:
+
 	System( EntityManager& emgr )
-		: m_emgr(emgr), m_view(emgr) { }
+		: m_emgr(emgr), m_view(emgr) {
+		m_view.setBits( artecshpp::core::ComponentBitsBuilder<Args...>::buildBits() );
+	}
+	
 	~System() {
 		
 	}
 
-	
 	void process() override {
 		m_view.template each<Args...>(static_cast<Derived*>(this)->function);
 	}
@@ -226,7 +257,8 @@ class SampleSystem : public System<
 	int, double, std::string> { 					// needed components
 public:
 	SampleSystem(EntityManager& emgr)
-	: System<SampleSystem, View<AliveFilter, ForwardIteratorFactory>, int, double, std::string>::System(emgr) { }
+	: System(emgr) { }
+	
 	std::function<void(Entity& e, int& i, double& d, std::string& str)> function =
 		[](Entity& e, int& i, double& d, std::string& s) {
 			std::cout 	<< i << std::endl
