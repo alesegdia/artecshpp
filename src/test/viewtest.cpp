@@ -5,10 +5,10 @@
 #include <artecshpp/core/entity.h>
 #include <artecshpp/core/ientitylistener.h>
 #include <artecshpp/core/componenttraits.h>
+#include <artecshpp/core/aspect.h>
 
 typedef artecshpp::core::Entity Entity;
-struct ComponentBits {};
-struct Aspect {};
+typedef artecshpp::core::Aspect Aspect;
 
 /**** Components Memory Management ********************/
 template <typename T>
@@ -39,19 +39,33 @@ std::vector<T> DefaultMemoryManager<T>::s_data(10);
 /**** EntityManager ***************************************/
 struct EntityManager {
 
+	std::vector<artecshpp::core::ComponentBits> m_entityBits{10};
+	
 	std::vector<Entity>& alive() {
 		return m_alive;
 	}
 
+	Entity createEntity() {
+		return Entity(s_lastID++);
+	}
+	
+	artecshpp::core::ComponentBits getBits( Entity e )
+	{
+		return m_entityBits[e.getID()];
+	}
+	
 	template <typename T>
 	T& createComponent(Entity e) {
+		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
 		return DefaultMemoryManager<T>::alloc(e);
 	}
 	
 	template <typename T>
 	T& getComponent(Entity e) {
+		m_entityBits[e.getID()].reset(artecshpp::core::ComponentTraits::getIndex<T>());
 		return *DefaultMemoryManager<T>::get(e);
 	}
+	
 	void addEntity(Entity e) {
 		m_alive.push_back(e);
 	}
@@ -65,7 +79,7 @@ struct EntityManager {
 	template <typename T>
 	void tryAddListener( typename std::enable_if<!std::is_base_of<artecshpp::core::IEntityObserver, T>::value, T>::type& t)
 	{
-		std::cout << "foo\n";
+
 	}
 
 	void addListener(artecshpp::core::IEntityObserver* obs) {
@@ -75,18 +89,17 @@ struct EntityManager {
 	std::vector<artecshpp::core::IEntityObserver*> m_observers;
 	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
 
+	static Entity::eid_t s_lastID;
+
 };
+
+Entity::eid_t EntityManager::s_lastID = 0;
 
 /**** Iterator Factories ******************************************/
 
-template <typename CheckerType>
-struct CheckerIteratorFactory {
-	CheckerType ct;
-};
-
 struct ForwardIteratorFactory {
 	
-	void setBits( const artecshpp::core::ComponentBits& bits ) {
+	ForwardIteratorFactory( EntityManager& emgr, artecshpp::core::Aspect& aspect ) {
 		
 	}
 	
@@ -97,6 +110,85 @@ struct ForwardIteratorFactory {
 	static inline std::vector<Entity>::iterator end( std::vector<Entity>& entities ) {
 		return entities.end();
 	}
+	
+};
+
+struct CheckerIteratorFactory {
+	
+	Aspect& m_aspect;
+	EntityManager& m_emgr;
+	
+	CheckerIteratorFactory( EntityManager& emgr, Aspect& aspect )
+		: m_aspect(aspect), m_emgr(emgr) { }
+	
+	template <typename Container>
+	struct iterator : public std::iterator<std::input_iterator_tag, Entity> {
+		
+		typename Container::iterator wrapped;
+		typename Container::iterator end;
+		Aspect& m_aspect;
+		EntityManager& m_emgr;
+		
+		iterator( EntityManager& emgr, Aspect& aspect, Container& container )
+			: m_aspect(aspect), m_emgr(emgr)
+		{
+			wrapped = container.begin();
+			end = container.end();
+			next_valid();
+		}
+		
+		iterator( EntityManager& emgr, Aspect& aspect, typename Container::iterator it )
+			: m_aspect(aspect), m_emgr(emgr)
+		{
+			wrapped = it;
+		}
+		
+		void next_valid()
+		{
+			while( !m_aspect.fits(m_emgr.getBits(*wrapped)) && wrapped != end )
+			{
+				wrapped++;
+			}
+		}
+		
+		iterator<Container>& operator++()
+		{
+			wrapped++;
+			next_valid();
+			return *this;
+		}
+		
+		const Entity operator * () const
+		{
+			return *wrapped;
+		}
+		
+		Entity operator * ()
+		{
+			return *wrapped;
+		}
+		
+		bool operator == (const iterator& rhs)
+		{
+			return wrapped == rhs.wrapped;
+		}
+
+		bool operator != (const iterator& rhs)
+		{
+			return wrapped != rhs.wrapped;
+		}
+
+	};
+	
+	inline iterator<std::vector<Entity>> begin( std::vector<Entity>& entities ) {
+		return iterator<std::vector<Entity>>( m_emgr, m_aspect, entities );
+	}
+	
+	inline iterator<std::vector<Entity>> end( std::vector<Entity>& entities ) {
+		return iterator<std::vector<Entity>>( m_emgr, m_aspect, entities.end() );
+	}
+	
+
 };
 
 
@@ -104,28 +196,26 @@ struct ForwardIteratorFactory {
 
 // pass to EntityFilters a template parameter indicating the bit checker
 
-struct AliveFilter {
-	AliveFilter(EntityManager& eMgr)
-		: m_eMgr(eMgr) {}
+struct BaseFilter {
+	BaseFilter(Aspect& aspect)
+		: m_aspect(aspect) {}
+	artecshpp::core::Aspect m_aspect;
+};
+
+struct AliveFilter : public BaseFilter {
+	AliveFilter(EntityManager& eMgr, Aspect& aspect)
+		: m_eMgr(eMgr), BaseFilter(aspect) {}
 	EntityManager m_eMgr;
-	
-	void setBits( const artecshpp::core::ComponentBits& bits ) {
-		
-	}
 	
 	std::vector<Entity>& entities() {
 		return m_eMgr.alive();
 	}
 };
 
-struct StorageFilter : public artecshpp::core::IEntityObserver {
-	StorageFilter(EntityManager& eMgr)
-		: m_eMgr(eMgr) {}
+struct StorageFilter : public artecshpp::core::IEntityObserver, public BaseFilter {
+	StorageFilter(EntityManager& eMgr, Aspect& aspect)
+		: m_eMgr(eMgr), BaseFilter(aspect) {}
 	EntityManager m_eMgr;
-	
-	void setBits( const artecshpp::core::ComponentBits& bits ) {
-		
-	}
 	
 	std::vector<Entity>& entities() {
 		return m_entities;
@@ -144,66 +234,37 @@ struct StorageFilter : public artecshpp::core::IEntityObserver {
 	std::vector<Entity> m_entities;
 };
 
-/**** AspectChecker ************************************************/
-struct BitChecker {
-
-	inline bool check( const Entity& e ) {
-		return true;
-	}
-
-	Aspect m_aspect;
-	EntityManager m_eMgr;
-};
-
-struct AlwaysTrueChecker {
-
-	inline bool check( const Entity& e ) {
-		return true;
-	}
-};
 
 /**** Entity Views **************************************************/
 // probably pass also EntityFilter <BitChecker>
 template <class EntityFilter, class IteratorFactory>
 struct View {
-	View( EntityManager& emgr )
-		: m_eMgr(emgr), m_filter(emgr) {
-		// moverlo al entitymanager y dejar alli el override? seria lo suyo
+	View( EntityManager& emgr, Aspect& aspect )
+		: m_eMgr(emgr), m_filter(emgr, aspect), m_itFactory(emgr, aspect)
+	{
 		m_eMgr.tryAddListener<EntityFilter>(m_filter);
 	}
 	
 	// if is_same StorageFilter, remove observer from emgr
 
-	void setBits( const artecshpp::core::ComponentBits& bits ) {
-		m_filter.setBits( bits );
-		m_itFactory.setBits( bits );
-	}
-	
 	EntityFilter m_filter;
 	IteratorFactory m_itFactory;
-	BitChecker m_checker;
 
 	template <typename... Args>
-	void each(std::function<void(Entity&,Args&...)> f) {
-		// ver forma para separar la creación del iterador
-		// con la selección de las entidades
-		//IteratorType it( = m_filter.begin( );
-		// IteratorType es un iterador de entidades
+	void each(std::function<void(Entity,Args&...)> f) {
 		auto it = m_itFactory.begin( m_filter.entities() );
 		while( it != m_itFactory.end( m_filter.entities() ) ) {
-			if( m_checker.check(*it) ) {
-				f( *it, (m_eMgr.template getComponent<Args>(*it)) ... );
-				it++;
-			}
+			f( *it, (m_eMgr.template getComponent<Args>(*it)) ... );
+			++it;
 		}
 	}
 
 	template <typename... Args>
-	void each(Entity e, std::function<void(Entity&,Args&...)> f) {
+	void each(Entity e, std::function<void(Entity,Args&...)> f) {
 		f( e, (m_eMgr.template getComponent<Args>(e)) ... );
 	}
 
-	EntityManager m_eMgr;
+	EntityManager& m_eMgr;
 };
 
 /**** Systems **************************************************/
@@ -218,31 +279,35 @@ BaseSystem::~BaseSystem() {
 	
 }
 
-template <class A, template <typename> class T>
-struct EntityView {};
 
 
-#include <type_traits>
-
-template <typename Derived, typename ViewType, typename... Args>
+template <typename Derived, typename ViewType, typename... Components>
 class System : public BaseSystem {
 public:
 
+	artecshpp::core::Aspect m_aspect;
+	
 	System( EntityManager& emgr )
-		: m_emgr(emgr), m_view(emgr) {
-		m_view.setBits( artecshpp::core::ComponentBitsBuilder<Args...>::buildBits() );
+		: m_emgr(emgr), m_view(emgr, m_aspect) {
+		// these components need to be there because those will be the queried components
+		m_aspect.all<Components...>();
 	}
 	
 	~System() {
 		
 	}
+	
+	void registerAspect( )
+	{
+		m_view.setBits( m_aspect );
+	}
 
 	void process() override {
-		m_view.template each<Args...>(static_cast<Derived*>(this)->function);
+		m_view.template each<Components...>(static_cast<Derived*>(this)->function);
 	}
 	
 	void process(Entity e) override {
-		m_view.template each<Args...>(e, static_cast<Derived*>(this)->function);
+		m_view.template each<Components...>(e, static_cast<Derived*>(this)->function);
 	}
 	
 private:
@@ -259,13 +324,41 @@ public:
 	SampleSystem(EntityManager& emgr)
 	: System(emgr) { }
 	
-	std::function<void(Entity& e, int& i, double& d, std::string& str)> function =
-		[](Entity& e, int& i, double& d, std::string& s) {
+	std::function<void(Entity e, int& i, double& d, std::string& str)> function =
+		[](Entity e, int& i, double& d, std::string& s) {
 			std::cout 	<< i << std::endl
 						<< d << std::endl
 						<< s << std::endl;
 		};
 };
+class SampleSystem2 : public System<
+	SampleSystem2, 									// system type
+	View<AliveFilter, CheckerIteratorFactory>, 		// view type
+	float> { 					// needed components
+public:
+	SampleSystem2(EntityManager& emgr)
+	: System(emgr) { }
+	
+	std::function<void(Entity, float&)> function =
+		[](Entity e, float& f) {
+			std::cout << f << std::endl;
+		};
+};
+
+class SampleSystem3 : public System<
+	SampleSystem3, 									// system type
+	View<StorageFilter, ForwardIteratorFactory>, 		// view type
+	float> { 					// needed components
+public:
+	SampleSystem3(EntityManager& emgr)
+	: System(emgr) { }
+	
+	std::function<void(Entity, float&)> function =
+		[](Entity e, float& f) {
+			std::cout << f << std::endl;
+		};
+};
+
 /***************************************************************/
 /*
 world::process() {
@@ -290,21 +383,29 @@ int main( int argc, char** argv ) {
 	EntityManager emgr;
 	
 	/****************************/
-	Entity e0(0);
+	Entity e0 = emgr.createEntity();
 	int& e1i = emgr.createComponent<int>(e0);
 	double& e1d = emgr.createComponent<double>(e0);
 	std::string& e1s = emgr.createComponent<std::string>(e0);
+	float& e1f = emgr.createComponent<float>(e0);
+	e1f = 3.14159268;
 	emgr.addEntity(e0);
 	
 	/****************************/
-	Entity e1(1);
+	Entity e1 = emgr.createEntity();
 	int& e2i = emgr.createComponent<int>(e1);
 	double& e2d = emgr.createComponent<double>(e1);
 	std::string& e2s = emgr.createComponent<std::string>(e1);
 	emgr.addEntity(e1);
 	
+	std::cout << emgr.getBits(e0) << " " << emgr.getBits(e1) << "\n";
+	
 	/****************************/
 	SampleSystem ss(emgr);
+	SampleSystem2 ss2(emgr);
+	SampleSystem3 ss3(emgr);
+	
+	std::cout << "num observers: " << " " << emgr.m_observers.size() << std::endl;
 	ss.process(e0);
 	
 	e1i = 3;
@@ -320,5 +421,11 @@ int main( int argc, char** argv ) {
 	std::cout << "===============================\n";
 	
 	ss.process();
+
+	std::cout << "===============================\n";
+
+	ss2.process();
+	//artecshpp::core::Aspect aspect;
+	//CheckerIteratorFactory cif(emgr, aspect);
 	return 0;
 }
