@@ -11,6 +11,68 @@ typedef artecshpp::core::Entity Entity;
 typedef artecshpp::core::Aspect Aspect;
 
 /**** Components Memory Management ********************/
+
+struct BasePool {
+	BasePool( size_t itemSize, size_t numItems )
+		: m_itemSize(itemSize), m_numItems(numItems) { expand(numItems); }
+	virtual ~BasePool() {
+		for( auto block : m_blocks )
+		{
+			delete [] block;
+		}
+	}
+	
+	inline void expand(size_t n)
+	{
+		n = n+1;
+		if( m_size < n )
+		{
+			if( m_capacity < n )
+			{
+				reserve(n);
+			}
+			m_size = n;
+		}
+	}
+	
+	inline void reserve(size_t n)
+	{
+		while( m_capacity < n )
+		{
+			char* block = new char[m_itemSize * m_numItems];
+			m_blocks.push_back(block);
+			m_capacity += m_numItems;
+		}
+	}
+	
+	inline void* get( size_t n )
+	{
+		size_t block_index = n / m_numItems;
+		size_t block_offset = ( n % m_numItems ) * m_itemSize;
+		return m_blocks[block_index] + block_offset;
+	}
+	
+	virtual void destroy( size_t n ) = 0;
+	
+	std::vector<char*> m_blocks; 	// data blocks
+	size_t m_itemSize; 				// size of an item
+	size_t m_numItems; 				// number of items per block
+	size_t m_size = 0; 				// current pool size in number of items
+	size_t m_capacity; 				// room in number of items to store without realloc
+};
+
+template <typename T, size_t ItemsPerBlock = 4096>
+struct Pool : public BasePool {
+	Pool() : BasePool(sizeof(T), ItemsPerBlock) {}
+	virtual ~Pool() {}
+	
+	virtual void destroy( size_t n )
+	{
+		T* element = static_cast<T*>(get(n));
+		element->~T();
+	}
+};
+
 template <typename T>
 struct DefaultMemoryManager {
 
@@ -40,13 +102,50 @@ std::vector<T> DefaultMemoryManager<T>::s_data(10);
 struct EntityManager {
 
 	std::vector<artecshpp::core::ComponentBits> m_entityBits{10};
+	std::vector<BasePool*> m_componentPools;
+	
+	template <typename Component>
+	void ensurePool()
+	{
+		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		if( m_componentPools.size() < component_index )
+		{
+			m_componentPools.resize(component_index+1, nullptr);
+		}
+		
+		if( m_componentPools[component_index] == nullptr )
+		{
+			m_componentPools[component_index] = new Pool<Component>();
+		}
+	}
+	
+	template <typename Component>
+	void ensurePoolSize( Entity e )
+	{
+		ensurePool<Component>();
+		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		if( m_componentPools[component_index]->m_size < e.getID() )
+		{
+			m_componentPools[component_index]->expand( e.getID() );
+		}
+	}
 	
 	std::vector<Entity>& alive() {
 		return m_alive;
 	}
 
 	Entity createEntity() {
-		return Entity(s_lastID++);
+		Entity::eid_t id;
+		if( !m_freeIDs.empty() )
+		{
+			id = m_freeIDs.top();
+			m_freeIDs.pop();
+		}
+		else
+		{
+			id = s_lastID++;
+		}
+		return Entity(id);
 	}
 	
 	artecshpp::core::ComponentBits getBits( Entity e )
@@ -57,13 +156,18 @@ struct EntityManager {
 	template <typename T>
 	T& createComponent(Entity e) {
 		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
-		return DefaultMemoryManager<T>::alloc(e);
+		ensurePoolSize<T>(e.getID());
+		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		new (c) T;
+		return *c;
+		//return DefaultMemoryManager<T>::alloc(e);
 	}
 	
 	template <typename T>
 	T& getComponent(Entity e) {
-		m_entityBits[e.getID()].reset(artecshpp::core::ComponentTraits::getIndex<T>());
-		return *DefaultMemoryManager<T>::get(e);
+		//m_entityBits[e.getID()].reset(artecshpp::core::ComponentTraits::getIndex<T>());
+		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		//return *DefaultMemoryManager<T>::get(e);
 	}
 	
 	void addEntity(Entity e) {
@@ -85,10 +189,25 @@ struct EntityManager {
 	void addListener(artecshpp::core::IEntityObserver* obs) {
 		this->m_observers.push_back(obs);
 	}
+		
+	void destroy(Entity e)
+	{
+		artecshpp::core::ComponentBits bits = m_entityBits[e.getID()];
+		for( int i = 0; i < m_componentPools.size(); i++ )
+		{
+			BasePool *pool = m_componentPools[i];
+			if( pool && bits.test(i) )
+			{
+				pool->destroy(e.getID());
+			}
+		}
+		// remove from alive
+	}
 
 	std::vector<artecshpp::core::IEntityObserver*> m_observers;
 	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
-
+	std::stack<Entity::eid_t> m_freeIDs;
+	
 	static Entity::eid_t s_lastID;
 
 };
@@ -229,8 +348,7 @@ struct StorageFilter : public artecshpp::core::IEntityObserver, public BaseFilte
 	void entityRemoved(Entity* e) override {
 		
 	}
-	
-	
+
 	std::vector<Entity> m_entities;
 };
 
@@ -263,7 +381,7 @@ struct View {
 	void each(Entity e, std::function<void(Entity,Args&...)> f) {
 		f( e, (m_eMgr.template getComponent<Args>(e)) ... );
 	}
-
+	
 	EntityManager& m_eMgr;
 };
 
@@ -316,6 +434,7 @@ private:
 	
 };
 
+
 class SampleSystem : public System<
 	SampleSystem, 									// system type
 	View<AliveFilter, ForwardIteratorFactory>, 		// view type
@@ -331,6 +450,7 @@ public:
 						<< s << std::endl;
 		};
 };
+
 class SampleSystem2 : public System<
 	SampleSystem2, 									// system type
 	View<AliveFilter, CheckerIteratorFactory>, 		// view type
@@ -359,6 +479,7 @@ public:
 		};
 };
 
+
 /***************************************************************/
 /*
 world::process() {
@@ -381,17 +502,16 @@ world::process() {
 int main( int argc, char** argv ) {
 
 	EntityManager emgr;
-	
-	/****************************/
+
 	Entity e0 = emgr.createEntity();
+
 	int& e1i = emgr.createComponent<int>(e0);
 	double& e1d = emgr.createComponent<double>(e0);
 	std::string& e1s = emgr.createComponent<std::string>(e0);
 	float& e1f = emgr.createComponent<float>(e0);
 	e1f = 3.14159268;
 	emgr.addEntity(e0);
-	
-	/****************************/
+
 	Entity e1 = emgr.createEntity();
 	int& e2i = emgr.createComponent<int>(e1);
 	double& e2d = emgr.createComponent<double>(e1);
@@ -400,21 +520,19 @@ int main( int argc, char** argv ) {
 	
 	std::cout << emgr.getBits(e0) << " " << emgr.getBits(e1) << "\n";
 	
-	/****************************/
 	SampleSystem ss(emgr);
 	SampleSystem2 ss2(emgr);
 	SampleSystem3 ss3(emgr);
 	
 	std::cout << "num observers: " << " " << emgr.m_observers.size() << std::endl;
 	ss.process(e0);
-	
+
 	e1i = 3;
 	e1d = 0.5;
-	e1s = "olaqase";
-	
+	e1s = "heh";
 	e2i = 123;
 	e2d = 0.999;
-	e2s = "fuckyeah this shit is working";
+	e2s = "working!";
 	
 	ss.process(e0);
 	
@@ -427,5 +545,6 @@ int main( int argc, char** argv ) {
 	ss2.process();
 	//artecshpp::core::Aspect aspect;
 	//CheckerIteratorFactory cif(emgr, aspect);
+
 	return 0;
 }
