@@ -35,7 +35,7 @@ This relatively simple elements let us easily compose entities by combining comp
 
 ## 2. Goals
 
-The initial target of **Artecshpp** is to experiment with the ECS philosophy so that I can explore ways to make the inner behaviour flexible instead of sticking into one single strategy of handling the inner bits of an ECS. This also involves the way that memory management is handled, letting the user provide custom allocation.
+The initial target of **Artecshpp** is to experiment with the ECS philosophy so that I can explore ways to make the inner behaviour flexible instead of sticking into one single strategy of handling the inner bits of an ECS.
 
 I know this is just the opposite of what is recommended in order to finish a project, but I don't have any problem with artecshpp being unfinished. The presence of this document might give the project a *professional feel*, but that's definitely not the point. It is just a way to keep things making sense together, and why not, training myself in writing specs.
 
