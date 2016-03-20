@@ -7,6 +7,10 @@
 #include <vector>
 #include <iostream>
 
+#include <artecshpp/core/componenttraits.h>
+#include <artecshpp/core/aspect.h>
+#include <artecshpp/core/memory.h>
+
 #include "config.h"
 
 namespace artecshpp {
@@ -31,79 +35,134 @@ private:
 };
 
 
-template <typename T>
-struct DefaultMemoryManager {
-
-	static std::vector<T> s_data;
-
-	static T* get(Entity e) {
-		std::cout << "GETTING ID\n";
-		return &(s_data[e.getID()]);
-	}
-
-	static void destroy(Entity e, T* t) {
-		std::cout << "delete t; " << "(" << ")\n";
-	}
-
-	template <typename... Args>
-	static T& alloc(Entity e, Args&&... args) {
-		std::cout << "T* t = new T(); return t; " << "(" << ")\n";
-		new (&(s_data[e.getID()])) T(args...);
-		return s_data[e.getID()];
-	}
-
-};
-
-template <typename T>
-std::vector<T> DefaultMemoryManager<T>::s_data(10);
-
-template <typename C>
-struct MemoryStrategy {
-	typedef DefaultMemoryManager<C> MemoryManager;
-};
-
-class EntityManager {
+class IEntityListener
+{
 public:
-	Entity createEntity() {
-		Entity e(s_lastID++);
-		return e;
-	}
+	virtual ~IEntityListener() = 0 ;
 
-	template <typename T>
-	T* get(Entity e) {
-		return MemoryStrategy<T>::MemoryManager::get(e);
-	}
+	virtual void entityAdded( Entity* e ) = 0 ;
+	virtual void entityRemoved( Entity* e ) = 0 ;
 
-	template <typename T, typename... Args>
-	T& create(Entity e, Args&&... args) {
-		return MemoryStrategy<T>::MemoryManager::alloc(e, std::forward<Args>(args)...);
-	}
-
-	template <typename T>
-	void remove(Entity e, T* t) {
-		MemoryStrategy<T>::MemoryManager::destroy( e, t );
-	}
-
-	template <typename... Types>
-	void apply2( Entity e, EntityManager em, std::function<void(Types&...)> f ) {
-		f( *(em.template get<Types>(e))... );
-	}
-
-	template <typename T>
-	void maker(Entity e, typename MemoryStrategy<T>::MemoryManager mm) {
-		MemoryStrategy<T>::MemoryManager::alloc(e);
-	}
-
-	template <typename T>
-	void deleter(Entity e, typename MemoryStrategy<T>::MemoryManager mm) {
-		MemoryStrategy<T>::MemoryManager::destroy(e, nullptr);
-	}
-
-private:
-	static Entity::eid_t s_lastID;
 };
 
 
+struct EntityManager {
+
+	std::vector<artecshpp::core::ComponentBits> m_entityBits{10};
+	std::vector<BasePool*> m_componentPools;
+
+	template <typename Component>
+	void ensurePool()
+	{
+		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		if( m_componentPools.size() < component_index )
+		{
+			m_componentPools.resize(component_index+1, nullptr);
+		}
+
+		if( m_componentPools[component_index] == nullptr )
+		{
+			m_componentPools[component_index] = new Pool<Component>();
+		}
+	}
+
+	template <typename Component>
+	void ensurePoolSize( Entity e )
+	{
+		ensurePool<Component>();
+		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		if( m_componentPools[component_index]->m_size < e.getID() )
+		{
+			m_componentPools[component_index]->expand( e.getID() );
+		}
+	}
+
+	std::vector<Entity>& alive() {
+		return m_alive;
+	}
+
+	Entity createEntity() {
+		Entity::eid_t id;
+		if( !m_freeIDs.empty() )
+		{
+			id = m_freeIDs.top();
+			m_freeIDs.pop();
+		}
+		else
+		{
+			id = s_lastID++;
+		}
+		return Entity(id);
+	}
+
+	artecshpp::core::ComponentBits getBits( Entity e )
+	{
+		return m_entityBits[e.getID()];
+	}
+
+	template <typename T>
+	T& createComponent(Entity e) {
+		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
+		ensurePoolSize<T>(e.getID());
+		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		new (c) T;
+		return *c;
+		//return DefaultMemoryManager<T>::alloc(e);
+	}
+
+	template <typename T>
+	T& getComponent(Entity e) {
+		//m_entityBits[e.getID()].reset(artecshpp::core::ComponentTraits::getIndex<T>());
+		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		//return *DefaultMemoryManager<T>::get(e);
+	}
+
+	template <typename T>
+	void removeComponent(Entity e) {
+		m_componentPools[ComponentTraits::getIndex<T>()]->destroy(e.getID());
+	}
+
+	void addEntity(Entity e) {
+		m_alive.push_back(e);
+	}
+
+	template <typename T>
+	void tryAddListener( typename std::enable_if<std::is_base_of<IEntityListener, T>::value, T>::type& t)
+	{
+		addListener(&t);
+	}
+
+	template <typename T>
+	void tryAddListener( typename std::enable_if<!std::is_base_of<IEntityListener, T>::value, T>::type& t)
+	{
+
+	}
+
+	void addListener(IEntityListener* obs) {
+		this->m_observers.push_back(obs);
+	}
+
+	void destroy(Entity e)
+	{
+		artecshpp::core::ComponentBits bits = m_entityBits[e.getID()];
+		for( int i = 0; i < m_componentPools.size(); i++ )
+		{
+			BasePool *pool = m_componentPools[i];
+			if( pool && bits.test(i) )
+			{
+				pool->destroy(e.getID());
+			}
+		}
+		// remove from alive
+	}
+
+	std::vector<IEntityListener*> m_observers;
+	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
+	std::stack<Entity::eid_t> m_freeIDs;
+
+	static Entity::eid_t s_lastID;
+
+};
 
 
 }}

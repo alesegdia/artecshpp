@@ -6,6 +6,11 @@
 namespace artecshpp {
 namespace core {
 
+
+IEntityListener::~IEntityListener()
+{
+}
+
 Entity::eid_t EntityManager::s_lastID = 0;
 
 

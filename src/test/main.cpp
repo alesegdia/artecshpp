@@ -32,10 +32,10 @@ int main( int argc, char** argv )
 	artecshpp::core::EntityManager em;
 	artecshpp::core::Entity e = em.createEntity();
 
-	int& i = em.create<int>(e);
-	std::string& s = em.create<std::string>(e);
+	int& i = em.createComponent<int>(e);
+	std::string& s = em.createComponent<std::string>(e);
 
-	em.remove( e, &i );
+	em.removeComponent<int>( e );
 
 	return 0;
 }
