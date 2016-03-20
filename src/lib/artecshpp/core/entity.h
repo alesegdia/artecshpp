@@ -1,5 +1,4 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#pragma once
 
 #include <cstdint>
 #include <stack>
@@ -176,5 +175,3 @@ struct EntityManager {
 
 }}
 
-
-#endif // ENTITY_H

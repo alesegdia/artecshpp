@@ -1,5 +1,4 @@
-#ifndef ENTITYSYSTEM_H
-#define ENTITYSYSTEM_H
+#pragma once
 
 #include "entity.h"
 #include "aspect.h"
@@ -27,6 +26,3 @@ protected:
 
 
 }}
-
-
-#endif // ENTITYSYSTEM_H

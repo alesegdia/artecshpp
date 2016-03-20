@@ -1,5 +1,4 @@
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#pragma once
 
 #include <cstdlib>
 #include <bitset>
@@ -18,6 +17,3 @@ typedef std::bitset<Config::MAX_COMPONENTS> ComponentBits;
 
 }
 }
-
-
-#endif

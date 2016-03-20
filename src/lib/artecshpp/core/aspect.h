@@ -1,5 +1,4 @@
-#ifndef __ASPECT_H__
-#define __ASPECT_H__
+#pragma once
 
 #include "config.h"
 #include "componenttraits.h"
@@ -36,7 +35,4 @@ private:
 
 
 }}
-
-
-#endif
 

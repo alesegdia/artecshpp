@@ -1,6 +1,4 @@
-#ifndef COMPONENTTRAITS_H
-#define COMPONENTTRAITS_H
-
+#pragma once
 #include <cstdint>
 #include <cmath>
 #include <bitset>
@@ -65,4 +63,3 @@ struct ComponentBitsBuilder<>
 }}
 
 
-#endif // COMPONENTTRAITS_H
