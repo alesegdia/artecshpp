@@ -103,7 +103,6 @@ private:
 	static Entity::eid_t s_lastID;
 };
 
-Entity::eid_t EntityManager::s_lastID = 0;
 
 
 
