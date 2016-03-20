@@ -50,10 +50,86 @@ public:
 };
 
 
-struct EntityManager {
+class EntityManager {
+public:
+	Entity createEntity()
+	{
+		Entity::eid_t id;
+		if( !m_freeIDs.empty() )
+		{
+			id = m_freeIDs.top();
+			m_freeIDs.pop();
+		}
+		else
+		{
+			id = s_lastID++;
+		}
+		return Entity(id);
+	}
+
+	template <typename T>
+	T& createComponent(Entity e)
+	{
+		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
+		ensurePoolSize<T>(e.getID());
+		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		new (c) T;
+		return *c;
+	}
+
+	template <typename T>
+	T& getComponent(Entity e)
+	{
+		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+	}
+
+	template <typename T>
+	void removeComponent(Entity e)
+	{
+		m_componentPools[ComponentTraits::getIndex<T>()]->destroy(e.getID());
+	}
+
+	std::vector<Entity>& alive()
+	{
+		return m_alive;
+	}
+
+	artecshpp::core::ComponentBits getBits( Entity e )
+	{
+		return m_entityBits[e.getID()];
+	}
+
+	void addEntity(Entity e)
+	{
+		m_alive.push_back(e);
+	}
+
+	int numObservers()
+	{
+		return m_observers.size();
+	}
+
+	template <typename T>
+	void tryAddListener( typename std::enable_if<std::is_base_of<IEntityListener, T>::value, T>::type& t)
+	{
+		addListener(&t);
+	}
+
+	template <typename T>
+	void tryAddListener( typename std::enable_if<!std::is_base_of<IEntityListener, T>::value, T>::type& t)
+	{
+
+	}
+
+private:
+
+	static Entity::eid_t s_lastID;
 
 	std::vector<artecshpp::core::ComponentBits> m_entityBits{10};
 	std::vector<BasePool*> m_componentPools;
+	std::vector<IEntityListener*> m_observers;
+	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
+	std::stack<Entity::eid_t> m_freeIDs;
 
 	template <typename Component>
 	void ensurePool()
@@ -81,70 +157,6 @@ struct EntityManager {
 		}
 	}
 
-	std::vector<Entity>& alive()
-	{
-		return m_alive;
-	}
-
-	Entity createEntity()
-	{
-		Entity::eid_t id;
-		if( !m_freeIDs.empty() )
-		{
-			id = m_freeIDs.top();
-			m_freeIDs.pop();
-		}
-		else
-		{
-			id = s_lastID++;
-		}
-		return Entity(id);
-	}
-
-	artecshpp::core::ComponentBits getBits( Entity e )
-	{
-		return m_entityBits[e.getID()];
-	}
-
-	template <typename T>
-	T& createComponent(Entity e)
-	{
-		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
-		ensurePoolSize<T>(e.getID());
-		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
-		new (c) T;
-		return *c;
-	}
-
-	template <typename T>
-	T& getComponent(Entity e)
-	{
-		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
-	}
-
-	template <typename T>
-	void removeComponent(Entity e)
-	{
-		m_componentPools[ComponentTraits::getIndex<T>()]->destroy(e.getID());
-	}
-
-	void addEntity(Entity e)
-	{
-		m_alive.push_back(e);
-	}
-
-	template <typename T>
-	void tryAddListener( typename std::enable_if<std::is_base_of<IEntityListener, T>::value, T>::type& t)
-	{
-		addListener(&t);
-	}
-
-	template <typename T>
-	void tryAddListener( typename std::enable_if<!std::is_base_of<IEntityListener, T>::value, T>::type& t)
-	{
-
-	}
-
 	void addListener(IEntityListener* obs)
 	{
 		this->m_observers.push_back(obs);
@@ -164,11 +176,6 @@ struct EntityManager {
 		// remove from alive
 	}
 
-	std::vector<IEntityListener*> m_observers;
-	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
-	std::stack<Entity::eid_t> m_freeIDs;
-
-	static Entity::eid_t s_lastID;
 
 };
 
