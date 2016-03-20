@@ -11,33 +11,6 @@
 typedef artecshpp::core::Entity Entity;
 typedef artecshpp::core::Aspect Aspect;
 
-/**** Components Memory Management ********************/
-
-template <typename T>
-struct DefaultMemoryManager {
-
-	static std::vector<T> s_data;
-
-	static T* get(Entity e) {
-		std::cout << "GETTING ID\n";
-		return &(s_data[e.getID()]);
-	}
-
-	static void destroy(Entity e, T* t) {
-
-	}
-
-	template <typename... Args>
-	static T& alloc(Entity e, Args&&... args) {
-		new (&(s_data[e.getID()])) T(args...);
-		return s_data[e.getID()];
-	}
-
-};
-
-template <typename T>
-std::vector<T> DefaultMemoryManager<T>::s_data(10);
-
 /**** EntityManager ***************************************/
 struct EntityManager {
 
