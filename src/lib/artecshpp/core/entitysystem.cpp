@@ -1,7 +1,5 @@
 #include "entitysystem.h"
 
-#include "engine.h"
-
 namespace artecshpp {
 namespace core {
 

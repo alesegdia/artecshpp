@@ -2,8 +2,6 @@
 #include <string>
 
 #include "artecshpp/core/aspect.h"
-#include "artecshpp/core/component.h"
-#include "artecshpp/core/engine.h"
 #include "artecshpp/core/entity.h"
 #include "artecshpp/core/entitysystem.h"
 
