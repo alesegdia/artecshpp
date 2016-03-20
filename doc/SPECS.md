@@ -64,3 +64,16 @@ An aspect has the following conditioners to accept an entity:
 
 In practice, the most common conditioner is the first one, but it's not hard to implement the others, and they can come in handy at some point.
 
+### 3.3. Entity filtering strategies
+
+We already have a way for a system to tell if it wants a specific entity via aspects. Now, we need a way to tell a system what set of entities the system must act on. Basically, two methods arise, and each one has its pros and cons.
+
+#### Storage filtering
+
+This method focuses on maintaining a list of entities that a specific system must act on. For this task, the object with this responsibility (storage from now on) needs to be notified on all possible entity operations (see [entity operations](#3-1-entity-operations)) so that the storage can add or remove entities depending on its changes and lifetime.
+
+The pro of this method is that while entities does not change its state (add/remove component, creation, destruction), we don't need to perform any extra operations. The drawback is that we must keep track of entity changes and this add some extra complexity from a coding point of view.
+
+#### Deterministic filtering
+
+This method consists in iterating the whole list of entities at each system step. The direct advantage of this method is that we do not need to keep track of entities operations, but the drawback is the overhead of having to iterate over the whole list of living entities at each step.
