@@ -23,9 +23,6 @@ public:
 protected:
 	Aspect aspect;
 
-private:
-	//rztl::UnorderedDynamicArray<Entity*> m_entities;
-
 };
 
 

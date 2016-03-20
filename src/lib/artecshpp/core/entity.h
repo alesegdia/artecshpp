@@ -24,14 +24,19 @@ public:
 	typedef std::uint64_t eid_t;
 
 	Entity( eid_t id )
-		: m_id(id) { }
+		: m_id(id)
+	{
 
-	eid_t getID() {
+	}
+
+	eid_t getID()
+	{
 		return m_id;
 	}
 
 private:
 	eid_t m_id;
+
 };
 
 
@@ -77,11 +82,13 @@ struct EntityManager {
 		}
 	}
 
-	std::vector<Entity>& alive() {
+	std::vector<Entity>& alive()
+	{
 		return m_alive;
 	}
 
-	Entity createEntity() {
+	Entity createEntity()
+	{
 		Entity::eid_t id;
 		if( !m_freeIDs.empty() )
 		{
@@ -101,28 +108,29 @@ struct EntityManager {
 	}
 
 	template <typename T>
-	T& createComponent(Entity e) {
+	T& createComponent(Entity e)
+	{
 		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
 		ensurePoolSize<T>(e.getID());
 		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
 		new (c) T;
 		return *c;
-		//return DefaultMemoryManager<T>::alloc(e);
 	}
 
 	template <typename T>
-	T& getComponent(Entity e) {
-		//m_entityBits[e.getID()].reset(artecshpp::core::ComponentTraits::getIndex<T>());
+	T& getComponent(Entity e)
+	{
 		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
-		//return *DefaultMemoryManager<T>::get(e);
 	}
 
 	template <typename T>
-	void removeComponent(Entity e) {
+	void removeComponent(Entity e)
+	{
 		m_componentPools[ComponentTraits::getIndex<T>()]->destroy(e.getID());
 	}
 
-	void addEntity(Entity e) {
+	void addEntity(Entity e)
+	{
 		m_alive.push_back(e);
 	}
 
@@ -138,7 +146,8 @@ struct EntityManager {
 
 	}
 
-	void addListener(IEntityListener* obs) {
+	void addListener(IEntityListener* obs)
+	{
 		this->m_observers.push_back(obs);
 	}
 
