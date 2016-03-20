@@ -3,7 +3,8 @@
 #include <vector>
 #include <cstdio>
 
-struct BasePool {
+class BasePool {
+public:
 
 	BasePool( size_t itemSize, size_t numItems )
 		: m_itemSize(itemSize), m_numItems(numItems) { expand(numItems); }
@@ -28,6 +29,22 @@ struct BasePool {
 		}
 	}
 
+	inline void* get( size_t n )
+	{
+		size_t block_index = n / m_numItems;
+		size_t block_offset = ( n % m_numItems ) * m_itemSize;
+		return m_blocks[block_index] + block_offset;
+	}
+
+	virtual void destroy( size_t n ) = 0;
+
+	int size()
+	{
+		return m_size;
+	}
+
+private:
+
 	inline void reserve(size_t n)
 	{
 		while( m_capacity < n )
@@ -37,15 +54,6 @@ struct BasePool {
 			m_capacity += m_numItems;
 		}
 	}
-
-	inline void* get( size_t n )
-	{
-		size_t block_index = n / m_numItems;
-		size_t block_offset = ( n % m_numItems ) * m_itemSize;
-		return m_blocks[block_index] + block_offset;
-	}
-
-	virtual void destroy( size_t n ) = 0;
 
 	std::vector<char*> m_blocks; 	// data blocks
 	size_t m_itemSize; 				// size of an item
