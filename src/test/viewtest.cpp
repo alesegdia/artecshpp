@@ -175,18 +175,18 @@ struct EntityManager {
 	}
 	
 	template <typename T>
-	void tryAddListener( typename std::enable_if<std::is_base_of<artecshpp::core::IEntityObserver, T>::value, T>::type& t)
+	void tryAddListener( typename std::enable_if<std::is_base_of<artecshpp::core::IEntityListener, T>::value, T>::type& t)
 	{
 		addListener(&t);		
 	}
 
 	template <typename T>
-	void tryAddListener( typename std::enable_if<!std::is_base_of<artecshpp::core::IEntityObserver, T>::value, T>::type& t)
+	void tryAddListener( typename std::enable_if<!std::is_base_of<artecshpp::core::IEntityListener, T>::value, T>::type& t)
 	{
 
 	}
 
-	void addListener(artecshpp::core::IEntityObserver* obs) {
+	void addListener(artecshpp::core::IEntityListener* obs) {
 		this->m_observers.push_back(obs);
 	}
 		
@@ -204,7 +204,7 @@ struct EntityManager {
 		// remove from alive
 	}
 
-	std::vector<artecshpp::core::IEntityObserver*> m_observers;
+	std::vector<artecshpp::core::IEntityListener*> m_observers;
 	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
 	std::stack<Entity::eid_t> m_freeIDs;
 	
@@ -331,7 +331,7 @@ struct AliveFilter : public BaseFilter {
 	}
 };
 
-struct StorageFilter : public artecshpp::core::IEntityObserver, public BaseFilter {
+struct StorageFilter : public artecshpp::core::IEntityListener, public BaseFilter {
 	StorageFilter(EntityManager& eMgr, Aspect& aspect)
 		: m_eMgr(eMgr), BaseFilter(aspect) {}
 	EntityManager m_eMgr;
