@@ -151,7 +151,7 @@ private:
 	{
 		ensurePool<Component>();
 		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
-		if( m_componentPools[component_index]->m_size < e.getID() )
+		if( m_componentPools[component_index]->size() < e.getID() )
 		{
 			m_componentPools[component_index]->expand( e.getID() );
 		}
