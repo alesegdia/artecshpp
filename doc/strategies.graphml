@@ -269,7 +269,7 @@ inline void each&lt;Args...&gt;(Args..args)</y:MethodLabel>
           <y:Geometry height="99.03999999999999" width="213.28000000000003" x="186.3736157337367" y="-649.52"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="119.35595703125" x="46.962021484375015" y="3.0">IEntityObserver<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="119.35595703125" x="46.962021484375015" y="3.0">IEntityListener<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -324,7 +324,7 @@ virtual void entityRemoved() = 0
             </y:ModelParameter>
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
-            <y:AttributeLabel>vector&lt;IEntityObserver*&gt; m_observers</y:AttributeLabel>
+            <y:AttributeLabel>vector&lt;IEntityListener*&gt; m_observers</y:AttributeLabel>
             <y:MethodLabel>void notifyEntityAdded(Entity e)
 void notifyEntityRemoved(Entity e)
 void notifyEntityChanged(Entity e)</y:MethodLabel>
