@@ -7,3 +7,4 @@ bin
 *.pyc
 *kdev4*
 CMakeLists.txt.user
+lib/**
