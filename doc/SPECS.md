@@ -51,3 +51,16 @@ The system targets the following operations on entities at any time in the game 
 2. Component addition.
 3. Component removal.
 4. Destruction.
+
+### 3.2. Aspects
+
+An aspect is basically a way to tell if a specific entity should be processed by a specific system, depending on which components the entity has. This way, a system will process an entity if and only if this entity is accepted by the system's owned aspect.
+
+An aspect has the following conditioners to accept an entity:
+
+* The entity **must have** certain components.
+* The entity **must not have** certain components.
+* The entity **can have** certain components.
+
+In practice, the most common conditioner is the first one, but it's not hard to implement the others, and they can come in handy at some point.
+
