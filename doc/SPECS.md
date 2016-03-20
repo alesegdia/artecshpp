@@ -7,8 +7,10 @@
 1. [What is an ECS?](#1-what-is-an-ecs)
 2. [Goals](#2-goals)
 3. [System overview](#3-system-overview)
-  1. [Aspects](#3-1-aspects)
-  2. [Entity filtering](#3-2-entity-filtering)
+  1. [Entity operations](#3-1-entity-operations)
+  2. [Aspects](#3-2-aspects)
+  3. [Entity filtering](#3-3-entity-filtering)
+
 
 ---
 
@@ -36,3 +38,16 @@ This relatively simple elements let us easily compose entities by combining comp
 The initial target of **Artecshpp** is to experiment with the ECS philosophy so that I can explore ways to make the inner behaviour flexible instead of sticking into one single strategy of handling the inner bits of an ECS. This also involves the way that memory management is handled, letting the user provide custom allocation.
 
 I know this is just the opposite of what is recommended in order to finish a project, but I don't have any problem with artecshpp being unfinished. The presence of this document might give the project a *professional feel*, but that's definitely not the point. It is just a way to keep things making sense together, and why not, training myself in writing specs.
+
+## 3. System overview
+
+In this section, I aim to describe the system's core concepts in detail. As mentioned previously, the design seeks flexibility at internal ECS functionality.
+
+### 3.1. Entity operations
+
+The system targets the following operations on entities at any time in the game life:
+
+1. Creation.
+2. Component addition.
+3. Component removal.
+4. Destruction.
