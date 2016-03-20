@@ -6,6 +6,9 @@
 
 1. [What is an ECS?](#1-what-is-an-ecs)
 2. [Goals](#2-goals)
+3. [System overview](#3-system-overview)
+  1. [Aspects](#3-1-aspects)
+  2. [Entity filtering](#3-2-entity-filtering)
 
 ---
 
