@@ -4,8 +4,10 @@
 #include <cstdio>
 
 struct BasePool {
+
 	BasePool( size_t itemSize, size_t numItems )
 		: m_itemSize(itemSize), m_numItems(numItems) { expand(numItems); }
+
 	virtual ~BasePool() {
 		for( auto block : m_blocks )
 		{
