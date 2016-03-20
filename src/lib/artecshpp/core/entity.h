@@ -59,7 +59,7 @@ struct EntityManager {
 	void ensurePool()
 	{
 		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
-		if( m_componentPools.size() < component_index )
+		if( m_componentPools.size() <= component_index )
 		{
 			m_componentPools.resize(component_index+1, nullptr);
 		}
