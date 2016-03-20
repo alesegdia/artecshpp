@@ -21,6 +21,11 @@ public:
 
 	const ComponentBits& all();
 
+	bool fits(ComponentBits cbits)
+	{
+		return true;
+	}
+
 
 private:
 	ComponentBits m_all;
