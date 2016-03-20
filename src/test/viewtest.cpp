@@ -319,7 +319,7 @@ int main( int argc, char** argv ) {
 	SampleSystem2 ss2(emgr);
 	SampleSystem3 ss3(emgr);
 	
-	std::cout << "num observers: " << " " << emgr.m_observers.size() << std::endl;
+	std::cout << "num observers: " << " " << emgr.numObservers() << std::endl;
 	ss.process(e0);
 
 	e1i = 3;
