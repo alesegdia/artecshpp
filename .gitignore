@@ -6,3 +6,4 @@ bin
 *.pro.user
 *.pyc
 *kdev4*
+CMakeLists.txt.user
