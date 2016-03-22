@@ -4,7 +4,7 @@
 #include <bitset>
 
 namespace artecshpp {
-namespace core {
+
 
 class Config {
 public:
@@ -15,5 +15,5 @@ public:
 
 typedef std::bitset<Config::MAX_COMPONENTS> ComponentBits;
 
-}
+
 }

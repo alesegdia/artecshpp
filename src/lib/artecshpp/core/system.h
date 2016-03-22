@@ -3,12 +3,11 @@
 #include "entity.h"
 
 namespace artecshpp {
-namespace core {
 
 
 struct ForwardIteratorFactory {
 
-	ForwardIteratorFactory( EntityManager& emgr, artecshpp::core::Aspect& aspect ) {
+	ForwardIteratorFactory( EntityManager& emgr, Aspect& aspect ) {
 
 	}
 
@@ -108,7 +107,7 @@ struct CheckerIteratorFactory {
 struct BaseFilter {
 	BaseFilter(Aspect& aspect)
 		: m_aspect(aspect) {}
-	artecshpp::core::Aspect m_aspect;
+	Aspect m_aspect;
 };
 
 struct AliveFilter : public BaseFilter {
@@ -121,7 +120,7 @@ struct AliveFilter : public BaseFilter {
 	}
 };
 
-struct StorageFilter : public artecshpp::core::IEntityListener, public BaseFilter {
+struct StorageFilter : public IEntityListener, public BaseFilter {
 	StorageFilter(EntityManager& eMgr, Aspect& aspect)
 		: m_eMgr(eMgr), BaseFilter(aspect) {}
 	EntityManager m_eMgr;
@@ -188,7 +187,7 @@ template <typename Derived, typename ViewType, typename... Components>
 class System : public BaseSystem {
 public:
 
-	artecshpp::core::Aspect m_aspect;
+	Aspect m_aspect;
 
 	System( EntityManager& emgr )
 		: m_emgr(emgr), m_view(emgr, m_aspect) {
@@ -221,5 +220,3 @@ private:
 
 
 }
-}
-

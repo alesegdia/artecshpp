@@ -3,7 +3,6 @@
 
 
 namespace artecshpp {
-namespace core {
 
 
 BaseSystem::~BaseSystem() {
@@ -11,5 +10,4 @@ BaseSystem::~BaseSystem() {
 }
 
 
-}
 }

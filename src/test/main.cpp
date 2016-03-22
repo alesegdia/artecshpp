@@ -3,7 +3,6 @@
 
 #include "artecshpp/core/aspect.h"
 #include "artecshpp/core/entity.h"
-#include "artecshpp/core/entitysystem.h"
 
 class A {};
 class B {};
@@ -17,7 +16,7 @@ class H {};
 int main( int argc, char** argv )
 {
 	std::cout << "ARTECSHPP" << std::endl;
-	artecshpp::core::Aspect a1, a2, a3, a4;
+	artecshpp::Aspect a1, a2, a3, a4;
 	a1.all<A,B,C,D,E,F,G,H>();
 	a2.all<A,C,E,G>();
 	a3.all<B,E,H>();
@@ -27,8 +26,8 @@ int main( int argc, char** argv )
 	std::cout << a3.all() << std::endl;
 	std::cout << a4.all() << std::endl;
 
-	artecshpp::core::EntityManager em;
-	artecshpp::core::Entity e = em.createEntity();
+	artecshpp::EntityManager em;
+	artecshpp::Entity e = em.createEntity();
 
 	int& i = em.createComponent<int>(e);
 	std::string& s = em.createComponent<std::string>(e);

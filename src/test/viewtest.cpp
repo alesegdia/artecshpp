@@ -5,17 +5,17 @@
 #include <artecshpp/core/entity.h>
 #include <artecshpp/core/system.h>
 
-typedef artecshpp::core::Entity Entity;
-typedef artecshpp::core::Aspect Aspect;
-typedef artecshpp::core::EntityManager EntityManager;
+typedef artecshpp::Entity Entity;
+typedef artecshpp::Aspect Aspect;
+typedef artecshpp::EntityManager EntityManager;
 
 /**** EntityManager ***************************************/
 /**** Iterator Factories ******************************************/
 
 
-class SampleSystem : public artecshpp::core::System<
+class SampleSystem : public artecshpp::System<
 	SampleSystem, 									// system type
-	artecshpp::core::View<artecshpp::core::AliveFilter, artecshpp::core::ForwardIteratorFactory>, 		// view type
+	artecshpp::View<artecshpp::AliveFilter, artecshpp::ForwardIteratorFactory>, 		// view type
 	int, double, std::string> { 					// needed components
 public:
 	SampleSystem(EntityManager& emgr)
@@ -29,9 +29,9 @@ public:
 		};
 };
 
-class SampleSystem2 : public artecshpp::core::System<
+class SampleSystem2 : public artecshpp::System<
 	SampleSystem2, 									// system type
-	artecshpp::core::View<artecshpp::core::AliveFilter, artecshpp::core::CheckerIteratorFactory>, 		// view type
+	artecshpp::View<artecshpp::AliveFilter, artecshpp::CheckerIteratorFactory>, 		// view type
 	float> { 					// needed components
 public:
 	SampleSystem2(EntityManager& emgr)
@@ -43,9 +43,9 @@ public:
 		};
 };
 
-class SampleSystem3 : public artecshpp::core::System<
+class SampleSystem3 : public artecshpp::System<
 	SampleSystem3, 									// system type
-	artecshpp::core::View<artecshpp::core::StorageFilter, artecshpp::core::ForwardIteratorFactory>, 		// view type
+	artecshpp::View<artecshpp::StorageFilter, artecshpp::ForwardIteratorFactory>, 		// view type
 	float> { 					// needed components
 public:
 	SampleSystem3(EntityManager& emgr)
@@ -121,7 +121,7 @@ int main( int argc, char** argv ) {
 	std::cout << "===============================\n";
 
 	ss2.process();
-	//artecshpp::core::Aspect aspect;
+	//artecshpp::Aspect aspect;
 	//CheckerIteratorFactory cif(emgr, aspect);
 
 	return 0;

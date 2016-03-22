@@ -2,10 +2,9 @@
 
 
 namespace artecshpp {
-namespace core {
 
 
 ctflags_t ComponentTraits::nextTypeIndex = 1;
 
 
-}}
+}

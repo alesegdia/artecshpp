@@ -4,7 +4,6 @@
 
 
 namespace artecshpp {
-namespace core {
 
 
 Aspect::~Aspect ()
@@ -18,6 +17,6 @@ const ComponentBits& Aspect::all()
 }
 
 
-}}
+}
 
 

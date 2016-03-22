@@ -5,7 +5,6 @@
 
 
 namespace artecshpp {
-namespace core {
 
 
 class Aspect {
@@ -34,5 +33,5 @@ private:
 
 
 
-}}
+}
 

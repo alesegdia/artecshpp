@@ -6,7 +6,6 @@
 
 
 namespace artecshpp {
-namespace core {
 
 
 typedef std::uint32_t ctflags_t;
@@ -60,6 +59,6 @@ struct ComponentBitsBuilder<>
 };
 
 
-}}
+}
 
 

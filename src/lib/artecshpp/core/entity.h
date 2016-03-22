@@ -13,7 +13,6 @@
 #include "config.h"
 
 namespace artecshpp {
-namespace core {
 
 
 typedef std::uint32_t eid_t;
@@ -70,9 +69,9 @@ public:
 	template <typename T>
 	T& createComponent(Entity e)
 	{
-		m_entityBits[e.getID()] |= artecshpp::core::ComponentBitsBuilder<T>::buildBits();
+		m_entityBits[e.getID()] |= ComponentBitsBuilder<T>::buildBits();
 		ensurePoolSize<T>(e.getID());
-		T* c = (static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		T* c = (static_cast<T*>(m_componentPools[ComponentTraits::getIndex<T>()]->get(e.getID())));
 		new (c) T;
 		return *c;
 	}
@@ -80,7 +79,7 @@ public:
 	template <typename T>
 	T& getComponent(Entity e)
 	{
-		return *(static_cast<T*>(m_componentPools[artecshpp::core::ComponentTraits::getIndex<T>()]->get(e.getID())));
+		return *(static_cast<T*>(m_componentPools[ComponentTraits::getIndex<T>()]->get(e.getID())));
 	}
 
 	template <typename T>
@@ -94,7 +93,7 @@ public:
 		return m_alive;
 	}
 
-	artecshpp::core::ComponentBits getBits( Entity e )
+	ComponentBits getBits( Entity e )
 	{
 		return m_entityBits[e.getID()];
 	}
@@ -125,7 +124,7 @@ private:
 
 	static Entity::eid_t s_lastID;
 
-	std::vector<artecshpp::core::ComponentBits> m_entityBits{10};
+	std::vector<ComponentBits> m_entityBits{10};
 	std::vector<BasePool*> m_componentPools;
 	std::vector<IEntityListener*> m_observers;
 	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
@@ -134,7 +133,7 @@ private:
 	template <typename Component>
 	void ensurePool()
 	{
-		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		size_t component_index = ComponentTraits::getIndex<Component>();
 		if( m_componentPools.size() <= component_index )
 		{
 			m_componentPools.resize(component_index+1, nullptr);
@@ -150,7 +149,7 @@ private:
 	void ensurePoolSize( Entity e )
 	{
 		ensurePool<Component>();
-		size_t component_index = artecshpp::core::ComponentTraits::getIndex<Component>();
+		size_t component_index = ComponentTraits::getIndex<Component>();
 		if( m_componentPools[component_index]->size() < e.getID() )
 		{
 			m_componentPools[component_index]->expand( e.getID() );
@@ -164,7 +163,7 @@ private:
 
 	void destroy(Entity e)
 	{
-		artecshpp::core::ComponentBits bits = m_entityBits[e.getID()];
+		ComponentBits bits = m_entityBits[e.getID()];
 		for( int i = 0; i < m_componentPools.size(); i++ )
 		{
 			BasePool *pool = m_componentPools[i];
@@ -180,5 +179,5 @@ private:
 };
 
 
-}}
+}
 

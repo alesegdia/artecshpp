@@ -4,7 +4,6 @@
 #include "componenttraits.h"
 
 namespace artecshpp {
-namespace core {
 
 
 IEntityListener::~IEntityListener()
@@ -14,6 +13,6 @@ IEntityListener::~IEntityListener()
 Entity::eid_t EntityManager::s_lastID = 0;
 
 
-}}
+}
 
 
