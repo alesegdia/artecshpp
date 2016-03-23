@@ -8,3 +8,4 @@ bin
 *kdev4*
 CMakeLists.txt.user
 lib/**
+00/**
