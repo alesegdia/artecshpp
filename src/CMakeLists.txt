@@ -10,6 +10,13 @@ file(GLOB_RECURSE TEST2_SRC test/viewtest.cpp)
 
 add_library(artecshppcore ${LIB_SRC})
 
+file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*.cpp)
+
+foreach(test ${tests})
+	get_filename_component(testName ${test} NAME_WE)
+	addTests(${testName} ${test} lib artecshppcore)
+endforeach()
+
 addTests(tst-aspects test/main.cpp lib artecshppcore)
 addTests(tst-views test/viewtest.cpp lib artecshppcore)
 
