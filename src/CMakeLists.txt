@@ -17,9 +17,6 @@ foreach(test ${tests})
 	addTests(${testName} ${test} lib artecshppcore)
 endforeach()
 
-addTests(tst-aspects test/main.cpp lib artecshppcore)
-addTests(tst-views test/viewtest.cpp lib artecshppcore)
-
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/lib)
 
