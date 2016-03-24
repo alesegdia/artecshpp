@@ -15,6 +15,8 @@ class H {};
 
 int main( int argc, char** argv )
 {
+	TestBench tb("Testing aspects");
+
 	std::cout << "ARTECSHPP" << std::endl;
 	artecshpp::Aspect a1, a2, a3, a4;
 	a1.all<A,B,C,D,E,F,G,H>();
@@ -34,5 +36,8 @@ int main( int argc, char** argv )
 
 	em.removeComponent<int>( e );
 
-	return 0;
+
+	TEST_CHECK(tb, 2 == 3, "you're dumb");
+
+	return tb.successAll();
 }
