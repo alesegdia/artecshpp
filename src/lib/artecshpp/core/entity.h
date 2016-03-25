@@ -48,6 +48,28 @@ public:
 
 };
 
+class EntityManager;
+
+class BaseComponentHelper {
+public:
+	BaseComponentHelper( EntityManager* em )
+		: m_entityManager(em) {}
+	virtual ~BaseComponentHelper() {}
+	virtual void removeComponent(Entity e) = 0 ;
+
+protected:
+	EntityManager* m_entityManager;
+};
+
+template <typename Component>
+class ComponentHelper : public BaseComponentHelper
+{
+public:
+	ComponentHelper(EntityManager* em)
+		: BaseComponentHelper(em) {}
+	void removeComponent( Entity e ) override ;
+
+};
 
 class EntityManager {
 public:
@@ -69,9 +91,17 @@ public:
 	template <typename T>
 	T& createComponent(Entity e)
 	{
+		ctflags_t index = ComponentTraits::getIndex<T>();
+
+		m_componentHelpers.resize(index, nullptr);
+		if( m_componentHelpers[index] == nullptr )
+		{
+			m_componentHelpers[index] = new ComponentHelper<T>(this);
+		}
+
 		m_entityBits[e.getID()] |= ComponentBitsBuilder<T>::buildBits();
 		ensurePoolSize<T>(e.getID());
-		T* c = (static_cast<T*>(m_componentPools[ComponentTraits::getIndex<T>()]->get(e.getID())));
+		T* c = (static_cast<T*>(m_componentPools[index]->get(e.getID())));
 		new (c) T;
 		return *c;
 	}
@@ -85,7 +115,24 @@ public:
 	template <typename T>
 	void removeComponent(Entity e)
 	{
-		m_componentPools[ComponentTraits::getIndex<T>()]->destroy(e.getID());
+		ctflags_t index = ComponentTraits::getIndex<T>();
+		m_componentPools[index]->destroy(e.getID());
+	}
+
+	bool hasComponent( Entity e, int index )
+	{
+		return m_entityBits[e.getID()].test(index);
+	}
+
+	void destroy(Entity e)
+	{
+		for( int i = 0; i < m_componentHelpers.size(); i++ )
+		{
+			if( hasComponent(e, i) )
+			{
+				m_componentHelpers[i]->removeComponent(e);
+			}
+		}
 	}
 
 	std::vector<Entity>& alive()
@@ -129,6 +176,7 @@ private:
 	std::vector<IEntityListener*> m_observers;
 	std::vector<Entity> m_alive; // usar más adelante sistema de versiones (dirty aumentativo (?))
 	std::stack<Entity::eid_t> m_freeIDs;
+	std::vector<BaseComponentHelper*> m_componentHelpers;
 
 	template <typename Component>
 	void ensurePool()
@@ -161,22 +209,15 @@ private:
 		this->m_observers.push_back(obs);
 	}
 
-	void destroy(Entity e)
-	{
-		ComponentBits bits = m_entityBits[e.getID()];
-		for( int i = 0; i < m_componentPools.size(); i++ )
-		{
-			BasePool *pool = m_componentPools[i];
-			if( pool && bits.test(i) )
-			{
-				pool->destroy(e.getID());
-			}
-		}
-		// remove from alive
-	}
-
 
 };
+
+template<typename Component>
+void ComponentHelper<Component>::removeComponent(Entity e)
+{
+	m_entityManager->removeComponent<Component>(e);
+}
+
 
 
 }
