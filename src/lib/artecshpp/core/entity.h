@@ -133,6 +133,10 @@ public:
 				m_componentHelpers[i]->removeComponent(e);
 			}
 		}
+		m_freeIDs.push(e.getID());
+
+		// insanely slow, will check this later
+		m_alive.erase(std::remove(m_alive.begin(), m_alive.end(), e.getID()), m_alive.end());
 	}
 
 	std::vector<Entity>& alive()
