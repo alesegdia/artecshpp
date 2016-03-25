@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #include <artecshpp/core/componenttraits.h>
 #include <artecshpp/core/aspect.h>
@@ -27,9 +28,14 @@ public:
 
 	}
 
-	eid_t getID()
+	eid_t getID() const
 	{
 		return m_id;
+	}
+
+	bool operator==(const Entity& other)
+	{
+		return m_id == other.getID();
 	}
 
 private:
@@ -136,7 +142,7 @@ public:
 		m_freeIDs.push(e.getID());
 
 		// insanely slow, will check this later
-		m_alive.erase(std::remove(m_alive.begin(), m_alive.end(), e.getID()), m_alive.end());
+		m_alive.erase(std::remove(m_alive.begin(), m_alive.end(), e), m_alive.end());
 	}
 
 	std::vector<Entity>& alive()
